@@ -1,0 +1,442 @@
+---------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:/Users/bjwil/OneDrive/Desktop/Mini-Project/results.log
+  log type:  text
+ opened on:   6 Oct 2023, 11:45:06
+
+. 
+. *-- Open data
+. use "$root/stata/pension65_stata.dta", replace
+
+. 
+. 
+. * ======================================= *
+. * >>>>>>>>>>> Generate variables <<<<<<<<<
+. * ======================================= *
+. 
+. * -- local of interest
+. local instlist9 "roof1 roof2 floor1 floor2 wall1 wall2 wall3 edu"
+
+. local depvarlist "employed threat_violence medical_care"
+
+. 
+. * -- post and pre treatment observations
+. gen postyears = 1 if  year>=2012
+(200,078 missing values generated)
+
+. gen preyears = 1 if year<=2017
+
+. 
+. * -- interaction for test
+.         gen i2014 = year==2014 if year>=2014 & year<=2017 
+(402,386 missing values generated)
+
+.         gen i2015 = year==2015 if year>=2014 & year<=2017 
+(402,386 missing values generated)
+
+.         gen i2016 = year==2016 if year>=2014 & year<=2017 
+(402,386 missing values generated)
+
+.         gen i2017 = year==2017 if year>=2014 & year<=2017 
+(402,386 missing values generated)
+
+. 
+.         foreach v in `instlist9'        {
+  2.                 gen i2014i`v' = i2014*`v'
+  3.                 gen i2015i`v' = i2015*`v'
+  4.                 gen i2016i`v' = i2016*`v'
+  5.                 gen i2017i`v' = i2017*`v'
+  6. 
+.                 local inter2014 "`inter2014'  i2014i`v'"
+  7.                 local inter2015 "`inter2015'  i2015i`v'"
+  8.                 local inter2016 "`inter2016'  i2016i`v'"
+  9.                 local inter2017 "`inter2017'  i2017i`v'"
+ 10.         }
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,386 missing values generated)
+(402,990 missing values generated)
+(402,990 missing values generated)
+(402,990 missing values generated)
+(402,990 missing values generated)
+
+. 
+.         gen i2014D = i2014*pension65 
+(845,018 missing values generated)
+
+.         gen i2015D = i2015*pension65 
+(845,018 missing values generated)
+
+.         gen i2016D = i2016*pension65 
+(845,018 missing values generated)
+
+.         gen i2017D = i2017*pension65 
+(845,018 missing values generated)
+
+. 
+. * -- program
+. run "$root/stata/p1_gmmdidm.do"
+
+. 
+. * ======================================= *
+. * >>>>>> Descriptive <<<<<<<<
+. * ======================================= *
+. 
+. * --------------------- Table 1: Descriptive statistics ---------------------
+. sum pension65 `depvarlist' `instlist9' preyears postyears 
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+   pension65 |    120,051    .2151002    .4470875          0          9
+    employed |    944,743    .4380821    .4961516          0          1
+threat_vio~e |    944,743    .0469175    .2114623          0          1
+medical_care |    944,743    .0898149    .2859165          0          1
+       roof1 |    944,743    .0890538    .2848216          0          1
+-------------+---------------------------------------------------------
+       roof2 |    944,743    .8949238    .3066517          0          1
+      floor1 |    944,743    .4325864    .4954348          0          1
+      floor2 |    944,743    .5482496    .4976668          0          1
+       wall1 |    944,743    .5353276    .4987507          0          1
+       wall2 |    944,743    .4458758    .4970622          0          1
+-------------+---------------------------------------------------------
+       wall3 |    944,743    .0187966    .1358063          0          1
+        educ |    943,764    2.294869    1.816114          0          5
+    preyears |    944,743           1           0          1          1
+   postyears |    744,665           1           0          1          1
+
+. * ---------------------------------------------------------------------------
+. 
+. * --------------------- Table 2: propensity scores  -------------------------
+. reg pension65 `instlist9'  
+note: wall3 omitted because of collinearity.
+
+      Source |       SS           df       MS      Number of obs   =   119,781
+-------------+----------------------------------   F(7, 119773)    =   3536.21
+       Model |  4062.02346         7  580.289066   Prob > F        =    0.0000
+    Residual |   19654.643   119,773  .164099112   R-squared       =    0.1713
+-------------+----------------------------------   Adj R-squared   =    0.1712
+       Total |  23716.6664   119,780   .19800189   Root MSE        =    .40509
+
+------------------------------------------------------------------------------
+   pension65 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       roof1 |  -.0388606   .0216368    -1.80   0.072    -.0812685    .0035472
+       roof2 |   .0121814   .0216525     0.56   0.574    -.0302571      .05462
+      floor1 |   .2204343   .0189496    11.63   0.000     .1832934    .2575752
+      floor2 |   .0046898    .019094     0.25   0.806    -.0327341    .0421136
+       wall1 |   .1261564   .0197828     6.38   0.000     .0873825    .1649303
+       wall2 |  -.0342611   .0200267    -1.71   0.087     -.073513    .0049908
+       wall3 |          0  (omitted)
+        educ |  -.0204603   .0006653   -30.75   0.000    -.0217642   -.0191563
+       _cons |   .1224167     .01693     7.23   0.000     .0892342    .1555991
+------------------------------------------------------------------------------
+
+.         sum `instlist9'  if pension65==1 & e(sample) 
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       roof1 |     25,267    .0895239    .2855041          0          1
+       roof2 |     25,267    .9066371    .2909461          0          1
+      floor1 |     25,267    .7727075    .4190914          0          1
+      floor2 |     25,267    .2235722    .4166468          0          1
+       wall1 |     25,267    .8560969    .3509984          0          1
+-------------+---------------------------------------------------------
+       wall2 |     25,267    .1383227    .3452452          0          1
+       wall3 |     25,267    .0055804    .0744948          0          1
+        educ |     25,267    1.392844    1.496911          0          5
+
+.         sum `instlist9'  if pension65==0 & e(sample) 
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       roof1 |     94,456    .0710278    .2568726          0          1
+       roof2 |     94,456    .9227683    .2669602          0          1
+      floor1 |     94,456    .2775684    .4478016          0          1
+      floor2 |     94,456     .714682    .4515682          0          1
+       wall1 |     94,456     .381945    .4858657          0          1
+-------------+---------------------------------------------------------
+       wall2 |     94,456     .609956    .4877624          0          1
+       wall3 |     94,456     .008099    .0896298          0          1
+        educ |     94,456    2.486279    1.905341          0          5
+
+. 
+. foreach v in `instlist9' {
+  2.         reg `v' pension65  
+  3. } 
+
+      Source |       SS           df       MS      Number of obs   =   120,051
+-------------+----------------------------------   F(1, 120049)    =     94.80
+       Model |  6.56662436         1  6.56662436   Prob > F        =    0.0000
+    Residual |  8315.31974   120,049  .069266048   R-squared       =    0.0008
+-------------+----------------------------------   Adj R-squared   =    0.0008
+       Total |  8321.88636   120,050   .06932017   Root MSE        =    .26318
+
+------------------------------------------------------------------------------
+       roof1 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |   .0165424    .001699     9.74   0.000     .0132124    .0198723
+       _cons |   .0713766   .0008429    84.68   0.000     .0697244    .0730287
+------------------------------------------------------------------------------
+
+      Source |       SS           df       MS      Number of obs   =   120,051
+-------------+----------------------------------   F(1, 120049)    =     67.66
+       Model |  5.01285324         1  5.01285324   Prob > F        =    0.0000
+    Residual |  8894.46554   120,049  .074090293   R-squared       =    0.0006
+-------------+----------------------------------   Adj R-squared   =    0.0006
+       Total |  8899.47839   120,050  .074131432   Root MSE        =     .2722
+
+------------------------------------------------------------------------------
+       roof2 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |  -.0144534   .0017571    -8.23   0.000    -.0178973   -.0110094
+       _cons |   .9224765   .0008718  1058.14   0.000     .9207678    .9241852
+------------------------------------------------------------------------------
+
+      Source |       SS           df       MS      Number of obs   =   120,051
+-------------+----------------------------------   F(1, 120049)    =  19864.45
+       Model |  4023.29872         1  4023.29872   Prob > F        =    0.0000
+    Residual |  24314.4417   120,049  .202537644   R-squared       =    0.1420
+-------------+----------------------------------   Adj R-squared   =    0.1420
+       Total |  28337.7404   120,050  .236049483   Root MSE        =    .45004
+
+------------------------------------------------------------------------------
+      floor1 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |   .4094657   .0029052   140.94   0.000     .4037715    .4151599
+       _cons |   .2938032   .0014414   203.83   0.000     .2909781    .2966283
+------------------------------------------------------------------------------
+
+      Source |       SS           df       MS      Number of obs   =   120,051
+-------------+----------------------------------   F(1, 120049)    =  19322.79
+       Model |  3955.06819         1  3955.06819   Prob > F        =    0.0000
+    Residual |  24572.1243   120,049  .204684123   R-squared       =    0.1386
+-------------+----------------------------------   Adj R-squared   =    0.1386
+       Total |  28527.1924   120,050  .237627592   Root MSE        =    .45242
+
+------------------------------------------------------------------------------
+      floor2 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |  -.4059788   .0029206  -139.01   0.000    -.4117031   -.4002545
+       _cons |   .6985664    .001449   482.10   0.000     .6957263    .7014064
+------------------------------------------------------------------------------
+
+      Source |       SS           df       MS      Number of obs   =   120,051
+-------------+----------------------------------   F(1, 120049)    =  17151.58
+       Model |  3746.97761         1  3746.97761   Prob > F        =    0.0000
+    Residual |   26226.204   120,049  .218462495   R-squared       =    0.1250
+-------------+----------------------------------   Adj R-squared   =    0.1250
+       Total |  29973.1816   120,050  .249672484   Root MSE        =     .4674
+
+------------------------------------------------------------------------------
+       wall1 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |   .3951545   .0030173   130.96   0.000     .3892407    .4010683
+       _cons |   .3968474    .001497   265.10   0.000     .3939133    .3997815
+------------------------------------------------------------------------------
+
+      Source |       SS           df       MS      Number of obs   =   120,051
+-------------+----------------------------------   F(1, 120049)    =  16913.03
+       Model |  3704.51609         1  3704.51609   Prob > F        =    0.0000
+    Residual |  26294.7246   120,049  .219033267   R-squared       =    0.1235
+-------------+----------------------------------   Adj R-squared   =    0.1235
+       Total |  29999.2407   120,050  .249889552   Root MSE        =    .46801
+
+------------------------------------------------------------------------------
+       wall2 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |  -.3929091   .0030212  -130.05   0.000    -.3988306   -.3869876
+       _cons |   .5951228   .0014989   397.03   0.000     .5921849    .5980607
+------------------------------------------------------------------------------
+
+      Source |       SS           df       MS      Number of obs   =   120,051
+-------------+----------------------------------   F(1, 120049)    =     16.15
+       Model |  .120982122         1  .120982122   Prob > F        =    0.0001
+    Residual |  899.041624   120,049  .007488956   R-squared       =    0.0001
+-------------+----------------------------------   Adj R-squared   =    0.0001
+       Total |  899.162606   120,050  .007489901   Root MSE        =    .08654
+
+------------------------------------------------------------------------------
+       wall3 | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |  -.0022454   .0005586    -4.02   0.000    -.0033403   -.0011504
+       _cons |   .0080298   .0002772    28.97   0.000     .0074865     .008573
+------------------------------------------------------------------------------
+
+      Source |       SS           df       MS      Number of obs   =   119,781
+-------------+----------------------------------   F(1, 119779)    =   5890.72
+       Model |  19854.0326         1  19854.0326   Prob > F        =    0.0000
+    Residual |   403701.99   119,779  3.37039039   R-squared       =    0.0469
+-------------+----------------------------------   Adj R-squared   =    0.0469
+       Total |  423556.023   119,780   3.5361164   Root MSE        =    1.8359
+
+------------------------------------------------------------------------------
+        educ | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   pension65 |  -.9149504    .011921   -76.75   0.000    -.9383154   -.8915854
+       _cons |   2.452294    .005891   416.28   0.000     2.440748     2.46384
+------------------------------------------------------------------------------
+
+. * ---------------------------------------------------------------------------
+. 
+. 
+. * ======================================= *
+. * >>>>> Regressions <<<<<<<<<
+. * ======================================= *
+. * It computes the GMM to build Figures 2 and 3
+. egen cvar = group(cluster year)
+(411 missing values generated)
+
+. local sample "age>=65 & year~=2012 & year~=2013 & year<=2017"
+
+. 
+. foreach depvar in `depvarlist'  {
+  2. local cloop = `cloop' + 1
+  3. 
+. di ""
+  4. di ""
+  5. di ""
+  6. di ""
+  7. di ">>>>>>>>>>> <<<<<<<<<<<<<"
+  8. di in yellow "sample: `sample'"
+  9. di ""
+ 10. di in yellow "depvar: `depvar'"
+ 11. di ""
+ 12. di in yellow "instruments: `instlist9'"
+ 13. di ">>>>>>>>>>> <<<<<<<<<<<<<"
+ 14. 
+.  capture timer clear 1
+ 15.  timer on 1
+ 16. 
+.  gmmdidm `depvar' pension65  if `sample', inst(`instlist9') time(year) yfirst( 2014 2015 2016 2017 ) ysecond( 2010 
+> 2011 2014 2015 2016 2017) ref(2011) max(10) new cluster(cvar) 
+ 17. 
+.  timer off 1
+ 18.  timer list 1
+ 19. 
+. * -- matrix for graph 
+. matrix M`depvar'_1 = [_b[/did2010],_b[/did2010] - invnorm(0.975)*_se[/did2010] , _b[/did2010] + invnorm(0.975)*_se[
+> /did2010] , _b[/did2010] - invnorm(0.95)*_se[/did2010] , _b[/did2010] + invnorm(0.95)*_se[/did2010]]
+ 20. matrix M`depvar'_2 = [0,0,0,0,0]
+ 21. matrix M`depvar'_3 = [_b[/did2014],_b[/did2014] - invnorm(0.975)*_se[/did2014] , _b[/did2014] + invnorm(0.975)*_
+> se[/did2014] , _b[/did2014] - invnorm(0.95)*_se[/did2014] , _b[/did2014] + invnorm(0.95)*_se[/did2014]]
+ 22. matrix M`depvar'_4 = [_b[/did2015],_b[/did2015] - invnorm(0.975)*_se[/did2015] , _b[/did2015] + invnorm(0.975)*_
+> se[/did2015] , _b[/did2015] - invnorm(0.95)*_se[/did2015] , _b[/did2015] + invnorm(0.95)*_se[/did2015]]
+ 23. matrix M`depvar'_5 = [_b[/did2016],_b[/did2016] - invnorm(0.975)*_se[/did2016] , _b[/did2016] + invnorm(0.975)*_
+> se[/did2016] , _b[/did2016] - invnorm(0.95)*_se[/did2016] , _b[/did2016] + invnorm(0.95)*_se[/did2016]]
+ 24. matrix M`depvar'_6 = [_b[/did2017],_b[/did2017] - invnorm(0.975)*_se[/did2017] , _b[/did2017] + invnorm(0.975)*_
+> se[/did2017] , _b[/did2017] - invnorm(0.95)*_se[/did2017] , _b[/did2017] + invnorm(0.95)*_se[/did2017]]
+ 25. matrix M`depvar' = [M`depvar'_1 \M`depvar'_2 \M`depvar'_3 \M`depvar'_4 \M`depvar'_5 \M`depvar'_6]
+ 26. 
+. matrix list M`depvar'
+ 27. 
+. 
+. * >> post treatment indicators <<
+. 
+. * -- propensity score F and correlation
+. di in y "---------- Propensity score ------------"
+ 28. di ""
+ 29. di in y "F-stat = " r(F)
+ 30. di in y "corr(D,Dhat) = " r(corrDD)
+ 31. di ""
+ 32. di in y "----------------------------------------"
+ 33. * -- overid test
+. di in y "---------- Overid test -----------------"
+ 34. di ""
+ 35. estat overid
+ 36. di ""
+ 37. di in y "----------------------------------------"
+ 38. 
+. * -- Stationarity of propensity score post-treatment ``test''
+.         reg pension65 i2014 i2016 i2017 `instlist9' `inter2014' `inter2016' `inter2017'   if `sample' & year~=. & (
+> year>=2014 & year<=2017) & `depvar'~=., cluster(cvar)
+ 39.                 test `inter2014' `inter2016' `inter2017'
+ 40. 
+. if "`depvar'"=="nodoc"  {
+ 41.         reg pension65 i2014 i2017       `instlist9' `inter2014'             `inter2017'   if `sample' & year~=. 
+> & (year>=2014 & year<=2017) & year~=2016 & `depvar'~=., cluster(cvar)
+ 42.                 test `inter2014'  `inter2017'
+ 43. }
+ 44. 
+. * -- Assumption A6 post-treatment ``test''
+. 
+.         reg `depvar' pension65 i2014 i2016 i2017 `instlist9' `inter2014' `inter2016' `inter2017'   if `sample' & ye
+> ar~=. & (year>=2014 & year<=2017), cluster(cvar)
+ 45.                 test `inter2014' `inter2016' `inter2017'
+ 46. 
+. if "`depvar'"=="nodoc"  {
+ 47.         reg `depvar' pension65 i2014       i2017 `instlist9' `inter2014'             `inter2017'   if `sample' &
+>  year~=. & (year>=2014 & year<=2017) & year~=2016, cluster(cvar)
+ 48.                 test `inter2014'  `inter2017'   
+ 49. }
+ 50. 
+.                                                                 }
+
+
+
+
+>>>>>>>>>>> <<<<<<<<<<<<<
+sample: age>=65 & year~=2012 & year~=2013 & year<=2017
+
+depvar: employed
+
+instruments: roof1 roof2 floor1 floor2 wall1 wall2 wall3 edu
+>>>>>>>>>>> <<<<<<<<<<<<<
+note: instrument wall3 omitted because of collinearity.
+note: instrument wall3 omitted because of collinearity.
+note: instrument wall3 omitted because of collinearity.
+note: instrument wall3 omitted because of collinearity.
+note: instrument wall3 omitted because of collinearity.
+note: instrument wall3 omitted because of collinearity.
+note: instrument wall3 omitted because of collinearity.
+
+Step 1
+--Break--
+r(1);
+
+end of do-file
+
+--Break--
+r(1);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD1824_000000.tmp"
+
+. clear
+
+. 
+. global root "C:/Users/bjwil/OneDrive/Desktop/Mini-Project"
+
+. 
+. * ================================================================================= *
+. *   Author: Brandon Williams
+. *       Date: 10/4/2023
+. *       Mini-Project: Clean and prepare stata file
+. *       
+. * ================================================================================= *
+. 
+. *-- Log file
+. capture log close

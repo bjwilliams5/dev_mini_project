@@ -1,0 +1,171 @@
+---------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:/Users/bjwil/OneDrive/Desktop/Mini-Project/stata/cleaning.log
+  log type:  text
+ opened on:   6 Oct 2023, 11:52:28
+
+. 
+. *-- Open data
+. use "$root/data/clean/pension65.dta", replace
+
+. 
+. * ======================================= *
+. * >>>>>>>>>>> Data Cleaning <<<<<<<<<
+. * ======================================= *
+. 
+. * -- unite missing variables
+. mvdecode _all, mv(99)
+ rel_to_head: 1 missing value generated
+     cluster: 411 missing values generated
+    altitude: 1268 missing values generated
+work_activ~y: 141482 missing values generated
+        roof: 2 missing values generated
+  humiliated: 87449 missing values generated
+    threaten: 87449 missing values generated
+        push: 87449 missing values generated
+        slap: 87449 missing values generated
+       punch: 87449 missing values generated
+        kick: 87449 missing values generated
+    strangle: 87449 missing values generated
+knife_threat: 87449 missing values generated
+knife_attack: 87449 missing values generated
+   force_sex: 87449 missing values generated
+    violence: 87448 missing values generated
+severe_vio~e: 87448 missing values generated
+sex_violence: 87448 missing values generated
+sought_pro~p: 219220 missing values generated
+ told_anyone: 219220 missing values generated
+receive_tr~t: 60781 missing values generated
+  measure_bp: 65322 missing values generated
+measure_bs~r: 72736 missing values generated
+       smoke: 185786 missing values generated
+       drink: 65660 missing values generated
+     dentist: 188054 missing values generated
+   mammogram: 171531 missing values generated
+   depressed: 169623 missing values generated
+    no_sleep: 169623 missing values generated
+      juntos: 312518 missing values generated
+   pension65: 755150 missing values generated
+
+. 
+. 
+. * -- remove those who didn't finish the interview 
+. 
+. drop if interview_result == . 
+(9,249 observations deleted)
+
+. 
+. * -- dummy years
+. tab year, gen(yr)
+
+       year |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       2010 |    101,416       10.73       10.73
+       2011 |     98,662       10.44       21.18
+       2012 |    103,211       10.92       32.10
+       2013 |     99,097       10.49       42.59
+       2014 |    108,536       11.49       54.08
+       2015 |    151,267       16.01       70.09
+       2016 |    142,006       15.03       85.12
+       2017 |    140,548       14.88      100.00
+------------+-----------------------------------
+      Total |    944,743      100.00
+
+. 
+. * -- redifine poorly defined binaries / categories
+. 
+. 
+. label variable sex "0 for male"
+
+. 
+. replace sex = 0 if sex == 1
+(466,879 real changes made)
+
+. replace sex = 1 if sex == 2
+(477,864 real changes made)
+
+. 
+. label variable educ "education in levels"
+
+. 
+. replace educ = . if educ == 8 
+(979 real changes made, 979 to missing)
+
+. 
+. label variable rural "0 for urban"
+
+. 
+. replace rural = 0 if rural == 1
+(604,328 real changes made)
+
+. replace rural = 1 if rural == 2
+(340,415 real changes made)
+
+. 
+. label variable residence "more pop to less pop"
+
+. 
+. gen employed = (work_activity < 4 | work_activity == 5)
+
+. gen hh_work = (work_activity == 4 | work_activity == 7)
+
+. gen other_work = (work_activity == 6 | work_activity > 7)
+
+. 
+. gen threat_violence = (humiliated == 1 | threaten == 1 | push == 1 | slap == 1 | violence == 1)
+
+. gen extreme_violence = (punch == 1 | kick == 1 | strangle == 1 | knife_threat == 1 | knife_attack == 1 | force_sex 
+> == 1 | severe_violence == 1)
+
+. 
+. gen medical_care = (receive_treat == 1 | measure_bp == 1 | measure_bsugar == 1 | dentist == 1 | mammogram == 1)
+
+. 
+. gen poor_mental_health = (no_sleep == 1 | no_sleep == 2 | no_sleep == 3 | depressed == 1 | depressed == 2 | depress
+> ed == 3)
+
+. 
+. * -- pension65 category
+. replace pension65 = 0 if pension65 == 2
+(94,678 real changes made)
+
+. 
+. 
+. * ======================================= *
+. * >>>>>>>>>>> Poverty Measures <<<<<<<<<
+. * ======================================= *
+. 
+. * -- roof material: rudimentary < 29, other > 39
+. gen roof1 = (roof < 29)                 
+
+. gen roof2 = (roof < 39 & roof >29)
+
+. gen roof3 = (roof > 39)
+
+. 
+. * -- floor material: rudimentary < 29, other > 39
+. 
+. gen floor1 = (floor < 29)                       
+
+. gen floor2 = (floor < 39 & floor >29)
+
+. gen floor3 = (floor > 39)
+
+. 
+. * -- wall material: natural < 19, rudimentary < 29, finished < 39, other > 39
+. 
+. gen wall1 = (wall < 19)
+
+. gen wall2 = (wall < 29 & wall > 19)
+
+. gen wall3= (wall > 29 & wall < 39)
+
+. gen wall4 = (wall >39)
+
+. 
+. save pension65_stata.dta, replace
+file pension65_stata.dta saved
+
+. 
+. *-- Log file
+. capture log close

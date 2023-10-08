@@ -1,0 +1,1706 @@
+--------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:/Users/bjwil/OneDrive/Desktop/Mini-Project/stata/results_rd
+> d.log
+  log type:  text
+ opened on:   6 Oct 2023, 16:47:33
+
+. 
+. *-- Open data
+. use "$root/stata/pension65_stata.dta", replace
+
+. 
+. *-- outcome, running variable, and cutoff defined, create running differ
+> ence
+. gl Y employed
+
+. gl Z medical_care
+
+. gl R age
+
+. gl c = 64.5
+
+. 
+. gen double R = $R - $c
+
+. 
+. gen water1 = (drnk_wtr_src == 13 | drnk_wtr_src == 22 | drnk_wtr_src == 
+> 41 | drnk_wtr_src == 42 | drnk_wtr_src == 43 | drnk_wtr_src == 51)
+
+. gen water2 = (drnk_wtr_src == 11 | drnk_wtr_src == 12 | drnk_wtr_src == 
+> 21 | drnk_wtr_src == 71)
+
+. 
+. 
+. replace pension65 = . if pension65 == 8 | pension65 == 9
+(62 real changes made, 62 to missing)
+
+. 
+. * ======================================= *
+. * >>>>>>>>>>> Propensity Weighting <<<<<<<<<
+. * ======================================= *
+. 
+. 
+.         
+. logit pension65 floor1 floor2 wall1 wall2 wall3 water1 water2 rural resi
+> dence edu if age >= 65 & pension65 <2
+
+Iteration 0:   log likelihood = -23922.434  
+Iteration 1:   log likelihood = -18371.081  
+Iteration 2:   log likelihood = -17537.708  
+Iteration 3:   log likelihood = -17488.564  
+Iteration 4:   log likelihood = -17488.484  
+Iteration 5:   log likelihood = -17488.484  
+
+Logistic regression                                   Number of obs =   41
+> ,641
+                                                      LR chi2(10)   = 1286
+> 7.90
+                                                      Prob > chi2   =   0.
+> 0000
+Log likelihood = -17488.484                           Pseudo R2     =   0.
+> 2690
+
+--------------------------------------------------------------------------
+> ----
+   pension65 | Coefficient  Std. err.      z    P>|z|     [95% conf. inter
+> val]
+-------------+------------------------------------------------------------
+> ----
+      floor1 |   .9978968   .1896597     5.26   0.000     .6261707    1.36
+> 9623
+      floor2 |   .0026572   .1925009     0.01   0.989    -.3746375     .37
+> 9952
+       wall1 |   .2406083   .1845181     1.30   0.192    -.1210405    .602
+> 2571
+       wall2 |   .5995768   .1832665     3.27   0.001     .2403811    .958
+> 7725
+       wall3 |  -.5614436   .1868812    -3.00   0.003    -.9277239   -.195
+> 1632
+      water1 |  -.2467614   .0688235    -3.59   0.000     -.381653   -.111
+> 8698
+      water2 |   -.022007   .0611765    -0.36   0.719    -.1419107    .097
+> 8968
+       rural |  -.4090712   .0609222    -6.71   0.000    -.5284766   -.289
+> 6658
+   residence |   .5824003   .0375111    15.53   0.000     .5088799    .655
+> 9207
+        educ |  -.4852197   .0147822   -32.82   0.000    -.5141923   -.456
+> 2471
+       _cons |  -2.356775   .2069984   -11.39   0.000    -2.762484   -1.95
+> 1065
+--------------------------------------------------------------------------
+> ----
+
+. predict pscore
+(option pr assumed; Pr(pension65))
+(979 missing values generated)
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. su pscore if pension65==1, detail
+
+                        Pr(pension65)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .0103372       .0046619
+ 5%     .0355435       .0046619
+10%     .0711024       .0046619       Obs              25,267
+25%     .2003582       .0046619       Sum of wgt.      25,267
+
+50%     .4286487                      Mean           .3759974
+                        Largest       Std. dev.      .2048313
+75%     .5178929       .6407979
+90%     .6357169       .6407979       Variance       .0419559
+95%     .6357169       .6407979       Skewness      -.3080545
+99%     .6357169       .6407979       Kurtosis        1.71323
+
+. su pscore if pension65==0, detail
+
+                        Pr(pension65)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .0046619        .003727
+ 5%     .0046619        .003727
+10%     .0083156        .003727       Obs              94,456
+25%     .0147905        .003727       Sum of wgt.      94,456
+
+50%     .0551803                      Mean           .1458166
+                        Largest       Std. dev.      .1820425
+75%      .204252       .6407979
+90%     .4932751       .6407979       Variance       .0331395
+95%     .5493026       .6407979       Skewness       1.395342
+99%     .6357169       .6407979       Kurtosis       3.671151
+
+. 
+. histogram pscore, by(pension65) binrescale
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. teffects psmatch (employed) (pension65 floor1 floor2 wall1 wall2 wall3 w
+> ater1 water2 rural residence edu c.altitude##c.altitude) if age >= 65
+
+Treatment-effects estimation                   Number of obs      =     41
+> ,589
+Estimator      : propensity-score matching     Matches: requested =       
+>    1
+Outcome model  : matching                                     min =       
+>    1
+Treatment model: logit                                        max =       
+>  224
+--------------------------------------------------------------------------
+> ----
+             |              AI robust
+    employed | Coefficient  std. err.      z    P>|z|     [95% conf. inter
+> val]
+-------------+------------------------------------------------------------
+> ----
+ATE          |
+   pension65 |
+   (1 vs 0)  |  -.0045254   .0135154    -0.33   0.738     -.031015    .021
+> 9642
+--------------------------------------------------------------------------
+> ----
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. teffects ipw (employed) (pension65 floor1 floor2 wall1 wall2 wall3 water
+> 1 water2 rural residence edu c.altitude##c.altitude) if age >= 65
+
+Iteration 0:   EE criterion =  9.118e-21  
+Iteration 1:   EE criterion =  4.307e-33  
+    The Gauss-Newton stopping criterion has been met but missing
+    standard errors indicate some of the parameters are not identified.
+
+Treatment-effects estimation                    Number of obs     =     41
+> ,589
+Estimator      : inverse-probability weights
+Outcome model  : weighted mean
+Treatment model: logit
+--------------------------------------------------------------------------
+> ----
+             |               Robust
+    employed | Coefficient  std. err.      z    P>|z|     [95% conf. inter
+> val]
+-------------+------------------------------------------------------------
+> ----
+ATE          |
+   pension65 |
+   (1 vs 0)  |   .0090477   .0120067     0.75   0.451     -.014485    .032
+> 5804
+-------------+------------------------------------------------------------
+> ----
+POmean       |
+   pension65 |
+          0  |   .4429222   .0030178   146.77   0.000     .4370074     .44
+> 8837
+--------------------------------------------------------------------------
+> ----
+Warning: Convergence not achieved.
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot $Y $R if age>=55 & age<=75, c(64) p(1) h(10 10) masspoints(off)  
+> ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+
+RD Plot with evenly spaced mimicking variance number of bins using spacing
+> s estimators.
+
+        Cutoff c = 64 | Left of c  Right of c        Number of obs  =     
+> 103180
+----------------------+----------------------        Kernel         =    U
+> niform
+        Number of obs |     55944       47236
+   Eff. Number of obs |     55944       43841
+  Order poly. fit (p) |         1           1
+     BW poly. fit (h) |    10.000      10.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |      2758         842
+   Average bin length |     0.003       0.013
+    Median bin length |     0.003       0.013
+----------------------+----------------------
+    IMSE-optimal bins |        13          13
+  Mimicking Var. bins |      2758         842
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |   212.154      64.769
+    WIMSE var. weight |     0.000       0.000
+    WIMSE bias weight |     1.000       1.000
+---------------------------------------------
+
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Y $R if age>=55 & age<=75, c(64) p(1) h(10 10) masspoints(off)
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 64 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     55944       47236            Kernel        = Tria
+> ngular
+Eff. Number of obs |     55944       40837            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.00661     .00643   -1.0280  0.304   -.019219      .
+> 005994
+            Robust |     -          -     0.1973   0.844   -.017388      .
+> 021281
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. foreach v in [61:69] {
+  2.         rdrobust $Y $R if age>=55 & age<=75, c(`v') p(1) h(10 10) mas
+> spoints(off)
+  3. } 
+option c() incorrectly specified
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. foreach v = 61/69 {
+  2.         rdrobust $Y $R if age>=55 & age<=75, c(`v') p(1) h(10 10) mas
+> spoints(off)
+  3. } 
+invalid syntax
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. foreach v = 61/69 {
+  2.         rdrobust $Y $R if age>=55 & age<=75, c('v') p(1) h(10 10) mas
+> spoints(off)
+  3. } 
+invalid syntax
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. foreach v = 61/69 {
+  2.         rdrobust $Y $R if age>=`v'-10 & age<=`v'+10, c(`v') p(1) h(10
+>  10) masspoints(off)
+  3. } 
+invalid syntax
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Y $R if age>=65-10 & age<=65+10, c(65) p(1) h(10 10) masspoint
+> s(off)
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. gl v = 65
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Y $R if age>=`v'-10 & age<=`v'+10, c(`v') p(1) h(10 10) masspo
+> ints(off)
+option c() incorrectly specified
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Y $R if age>=`v'-10 & age<=`v'+10, c($v) p(1) h(10 10) masspoi
+> nts(off)
+c() should be set within the range of age
+r(125);
+
+end of do-file
+
+r(125);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Y $R if age>=$v-10 & age<=$v+10, c($v) p(1) h(10 10) masspoint
+> s(off)
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. foreach v = 61/69 {
+  2.         rdrobust $Y $R if age>=$v-10 & age<=$v+10, c($v) p(1) h(10 10
+> ) masspoints(off)
+  3. } 
+invalid syntax
+r(198);
+
+end of do-file
+
+r(198);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. foreach v  of numlist 61/69 {
+  2.         rdrobust $Y $R if age>=$v-10 & age<=$v+10, c($v) p(1) h(10 10
+> ) masspoints(off)
+  3. } 
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. foreach i  of numlist 61/69 {
+  2.         rdrobust $Y $R if age>=`i'-10 & age<=`i'+10, c(`i') p(1) h(10
+>  10) masspoints(off)
+  3. } 
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 61 | Left of c  Right of c            Number of obs =     
+> 122630
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     72618       50012            Kernel        = Tria
+> ngular
+Eff. Number of obs |     65271       47298            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional |  .00548     .00593   0.9237   0.356   -.006145      .
+> 017101
+            Robust |     -          -     0.5188   0.604   -.013075      .
+> 022488
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 62 | Left of c  Right of c            Number of obs =     
+> 118681
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     69758       48923            Kernel        = Tria
+> ngular
+Eff. Number of obs |     60762       45525            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional |   .0058     .00613   0.9459   0.344   -.006217      .
+> 017816
+            Robust |     -          -     0.9881   0.323   -.009526      .
+> 028894
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 63 | Left of c  Right of c            Number of obs =     
+> 112645
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     66350       46295            Kernel        = Tria
+> ngular
+Eff. Number of obs |     58108       43335            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.00108     .00628   -0.1727  0.863   -.013386      .
+> 011218
+            Robust |     -          -     -0.0560  0.955   -.019675      .
+> 018582
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 64 | Left of c  Right of c            Number of obs =     
+> 107407
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     63566       43841            Kernel        = Tria
+> ngular
+Eff. Number of obs |     55944       40837            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.00661     .00643   -1.0280  0.304   -.019219      .
+> 005994
+            Robust |     -          -     0.1973   0.844   -.017388      .
+> 021281
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 65 | Left of c  Right of c            Number of obs =     
+> 103180
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     61165       42015            Kernel        = Tria
+> ngular
+Eff. Number of obs |     53456       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02317     .00662   -3.5009  0.000   -.036136     -.
+> 010197
+            Robust |     -          -     -1.9844  0.047   -.039798     -.
+> 000246
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 66 | Left of c  Right of c            Number of obs =     
+>  98046
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     59386       38660            Kernel        = Tria
+> ngular
+Eff. Number of obs |     52112       36085            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02073     .00689   -3.0097  0.003   -.034227      -
+> .00723
+            Robust |     -          -     -0.2037  0.839   -.022659      .
+> 018393
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 67 | Left of c  Right of c            Number of obs =     
+>  93043
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     56300       36743            Kernel        = Tria
+> ngular
+Eff. Number of obs |     50063       34472            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02124     .00717   -2.9602  0.003   -.035296     -.
+> 007175
+            Robust |     -          -     -0.0325  0.974    -.02254      .
+> 021805
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 68 | Left of c  Right of c            Number of obs =     
+>  89459
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     54437       35022            Kernel        = Tria
+> ngular
+Eff. Number of obs |     47788       32369            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.01435     .00749   -1.9151  0.055    -.02904      .
+> 000336
+            Robust |     -          -     0.6674   0.505   -.015111      .
+> 030714
+--------------------------------------------------------------------------
+> ------
+
+Sharp RD estimates using local polynomial regression.
+
+     Cutoff c = 69 | Left of c  Right of c            Number of obs =     
+>  84639
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     51960       32679            Kernel        = Tria
+> ngular
+Eff. Number of obs |     46269       30850            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.00885     .00779   -1.1353  0.256   -.024117      .
+> 006426
+            Robust |     -          -     0.3181   0.750   -.019652      .
+> 027266
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. help rdplot
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Y $R if age>=55 & age<=75, c($c) p(1) h(10 10) masspoints(off)
+>  fuzzy(pension65)
+
+Fuzzy RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+>  34934
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |      8512       26422            Kernel        = Tria
+> ngular
+Eff. Number of obs |      8512       24445            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+First-stage estimates. Outcome: pension65. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.06789     .00944   -7.1906  0.000   -.086391     -.
+> 049383
+            Robust |     -          -     -8.7834  0.000   -.144565     -.
+> 091818
+--------------------------------------------------------------------------
+> ------
+
+Treatment effect estimates. Outcome: employed. Running variable: age. Trea
+> tment Status: pension65.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -1.6761      .3021   -5.5482  0.000   -2.26825     -1
+> .08402
+            Robust |     -          -     -0.5792  0.562   -1.09634      .
+> 596155
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot $Y $R if age>=55 & age<=75, c($c) p(1) h(10 10) masspoints(off) f
+> uzzy(pension65) ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+
+RD Plot with evenly spaced mimicking variance number of bins using spacing
+> s estimators.
+
+      Cutoff c = 64.5 | Left of c  Right of c        Number of obs  =     
+> 103180
+----------------------+----------------------        Kernel         =    U
+> niform
+        Number of obs |     61165       42015
+   Eff. Number of obs |     61165       38620
+  Order poly. fit (p) |         1           1
+     BW poly. fit (h) |    10.000      10.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |      1474         808
+   Average bin length |     0.006       0.013
+    Median bin length |     0.006       0.013
+----------------------+----------------------
+    IMSE-optimal bins |        11          11
+  Mimicking Var. bins |      1474         808
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |   134.000      73.455
+    WIMSE var. weight |     0.000       0.000
+    WIMSE bias weight |     1.000       1.000
+---------------------------------------------
+
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Y $R if age>=55 & age<=75, c($c) p(0) h(10 10) masspoints(off)
+>  fuzzy(pension65)
+
+Fuzzy RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+>  34934
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |      8512       26422            Kernel        = Tria
+> ngular
+Eff. Number of obs |      8512       24445            VCE method    =     
+>     NN
+    Order est. (p) |         0           0
+    Order bias (q) |         1           1
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+First-stage estimates. Outcome: pension65. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional |  .02209     .00539   4.0969   0.000    .011524      .
+> 032665
+            Robust |     -          -     -7.1906  0.000   -.086391     -.
+> 049383
+--------------------------------------------------------------------------
+> ------
+
+Treatment effect estimates. Outcome: employed. Running variable: age. Trea
+> tment Status: pension65.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional |  .27381     .32551   0.8412   0.400   -.364176      .
+> 911787
+            Robust |     -          -     10.8036  0.000    5.12851      7
+> .40171
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. 
+. rdrobust $Y $R, c($c) p(1) h(10 10) masspoints(off)
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+> 944743
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |    878405       66338            Kernel        = Tria
+> ngular
+Eff. Number of obs |     61165       38620            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |    10.000      10.000
+       BW bias (b) |    10.000      10.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.01909     .00657   -2.9065  0.004   -.031962     -.
+> 006217
+            Robust |     -          -     -1.3657  0.172   -.031662      .
+> 005658
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot $Y $R if age>=60 & age<=70, c($c) p(1) h(5 5) masspoints(off) fuz
+> zy(pension65)   ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+
+RD Plot with evenly spaced mimicking variance number of bins using spacing
+> s estimators.
+
+      Cutoff c = 64.5 | Left of c  Right of c        Number of obs  =     
+>  54149
+----------------------+----------------------        Kernel         =    U
+> niform
+        Number of obs |     27605       26544
+   Eff. Number of obs |     27605       22076
+  Order poly. fit (p) |         1           1
+     BW poly. fit (h) |     5.000       5.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |       440         611
+   Average bin length |     0.010       0.009
+    Median bin length |     0.010       0.009
+----------------------+----------------------
+    IMSE-optimal bins |         4           7
+  Mimicking Var. bins |       440         611
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |   110.000      87.286
+    WIMSE var. weight |     0.000       0.000
+    WIMSE bias weight |     1.000       1.000
+---------------------------------------------
+
+
+.         
+. rdrobust $Y $R, c($c) p(1) h(5 5) masspoints(off)
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+> 944743
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |    878405       66338            Kernel        = Tria
+> ngular
+Eff. Number of obs |     27605       22076            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |     5.000       5.000
+       BW bias (b) |     5.000       5.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: employed. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.01568      .0091   -1.7228  0.085   -.033511      .
+> 002158
+            Robust |     -          -     -1.2779  0.201   -.045314      .
+> 009546
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot hh_work $R if age>=60 & age<=70, c($c) p(1) h(5 5) masspoints(off
+> )       ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+                rangen():  3351  argument has missing values
+                 <istmt>:     -  function returned error
+r(3351);
+
+end of do-file
+
+r(3351);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust hh_work $R, c($c) p(1) h(5 5) masspoints(off)
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+> 944743
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |    878405       66338            Kernel        = Tria
+> ngular
+Eff. Number of obs |     27605       22076            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |     5.000       5.000
+       BW bias (b) |     5.000       5.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: hh_work. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional |  .01704      .0085   2.0046   0.045     .00038      .
+> 033699
+            Robust |     -          -     1.0037   0.316   -.012512      .
+> 038776
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot hh_work $R if age>=60 & age<=70, c($c) p(1) h(5 5) masspoints(off
+> )       ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+                rangen():  3351  argument has missing values
+                 <istmt>:     -  function returned error
+r(3351);
+
+end of do-file
+
+r(3351);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot hh_work $R, c($c) p(1) h(5 5) masspoints(off)    ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+
+RD Plot with evenly spaced mimicking variance number of bins using spacing
+> s estimators.
+
+      Cutoff c = 64.5 | Left of c  Right of c        Number of obs  =     
+> 944743
+----------------------+----------------------        Kernel         =    U
+> niform
+        Number of obs |    878405       66338
+   Eff. Number of obs |     27605       22076
+  Order poly. fit (p) |         1           1
+     BW poly. fit (h) |     5.000       5.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: hh_work. Running variable: age.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |      3597        5682
+   Average bin length |     0.018       0.006
+    Median bin length |     0.018       0.006
+----------------------+----------------------
+    IMSE-optimal bins |        67          14
+  Mimicking Var. bins |      3597        5682
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |    53.687     405.857
+    WIMSE var. weight |     0.000       0.000
+    WIMSE bias weight |     1.000       1.000
+---------------------------------------------
+
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot hh_work $R if age >=59 & age <=71, c($c) p(1) h(5 5) masspoints(o
+> ff)     ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+
+RD Plot with evenly spaced mimicking variance number of bins using spacing
+> s estimators.
+
+      Cutoff c = 64.5 | Left of c  Right of c        Number of obs  =     
+>  62554
+----------------------+----------------------        Kernel         =    U
+> niform
+        Number of obs |     33296       29258
+   Eff. Number of obs |     27605       22076
+  Order poly. fit (p) |         1           1
+     BW poly. fit (h) |     5.000       5.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: hh_work. Running variable: age.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |      1056        1395
+   Average bin length |     0.005       0.005
+    Median bin length |     0.005       0.005
+----------------------+----------------------
+    IMSE-optimal bins |         7           4
+  Mimicking Var. bins |      1056        1395
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |   150.857     348.750
+    WIMSE var. weight |     0.000       0.000
+    WIMSE bias weight |     1.000       1.000
+---------------------------------------------
+
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot $Z $R if age>=60 & age<=70, c($c) p(1) h(5) masspoints(off)      
+> ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+                rangen():  3351  argument has missing values
+                 <istmt>:     -  function returned error
+r(3351);
+
+end of do-file
+
+r(3351);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot $Z $R if age>=59 & age<=71, c($c) p(1) h(5) masspoints(off)      
+> ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+                rangen():  3351  argument has missing values
+                 <istmt>:     -  function returned error
+r(3351);
+
+end of do-file
+
+r(3351);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust $Z $R, c($c) p(1) h(5) masspoints(off)
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+> 944743
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |    878405       66338            Kernel        = Tria
+> ngular
+Eff. Number of obs |     27605       22076            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |     5.000       5.000
+       BW bias (b) |     5.000       5.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: medical_care. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.02666       .008   -3.3333  0.001   -.042337     -.
+> 010984
+            Robust |     -          -     -3.0790  0.002    -.06211     -.
+> 013793
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot $Z $R if age>=58 & age<=72, c($c) p(1) h(5) masspoints(off)      
+> ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+                rangen():  3351  argument has missing values
+                 <istmt>:     -  function returned error
+r(3351);
+
+end of do-file
+
+r(3351);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot $Z $R if age>=58 & age<=72, c($c) p(1) h(5 5) masspoints(off)    
+> ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+                rangen():  3351  argument has missing values
+                 <istmt>:     -  function returned error
+r(3351);
+
+end of do-file
+
+r(3351);
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdplot poor_mental_health $R if age>=59 & age<=71, c($c) p(1) h(5 5) mas
+> spoints(off)    ///
+>         graph_options(graphregion(color(white)) title("") /// 
+>         ytitle("`lab'") legend(off))
+
+RD Plot with evenly spaced mimicking variance number of bins using spacing
+> s estimators.
+
+      Cutoff c = 64.5 | Left of c  Right of c        Number of obs  =     
+>  62554
+----------------------+----------------------        Kernel         =    U
+> niform
+        Number of obs |     33296       29258
+   Eff. Number of obs |     27605       22076
+  Order poly. fit (p) |         1           1
+     BW poly. fit (h) |     5.000       5.000
+ Number of bins scale |     1.000       1.000
+
+Outcome: poor_mental_health. Running variable: age.
+---------------------------------------------
+                      | Left of c  Right of c
+----------------------+----------------------
+        Bins selected |       376         477
+   Average bin length |     0.015       0.014
+    Median bin length |     0.015       0.014
+----------------------+----------------------
+    IMSE-optimal bins |         4          10
+  Mimicking Var. bins |       376         477
+----------------------+----------------------
+Rel. to IMSE-optimal: | 
+        Implied scale |    94.000      47.700
+    WIMSE var. weight |     0.000       0.000
+    WIMSE bias weight |     1.000       1.000
+---------------------------------------------
+
+
+.         
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust poor_mental_health $R, c($c) p(1) h(5) masspoints(off)
+
+Sharp RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+> 944743
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |    878405       66338            Kernel        = Tria
+> ngular
+Eff. Number of obs |     27605       22076            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |     5.000       5.000
+       BW bias (b) |     5.000       5.000
+         rho (h/b) |     1.000       1.000
+
+Outcome: poor_mental_health. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.01689     .00484   -3.4912  0.000   -.026375     -.
+> 007409
+            Robust |     -          -     -4.6680  0.000   -.049608     -.
+> 020269
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust poor_mental_health $R, c($c) p(1) h(5) masspoints(off) fuzzy(pe
+> nsion65)
+
+Fuzzy RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+> 119989
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     78190       41799            Kernel        = Tria
+> ngular
+Eff. Number of obs |      4664       14037            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |     5.000       5.000
+       BW bias (b) |     5.000       5.000
+         rho (h/b) |     1.000       1.000
+
+First-stage estimates. Outcome: pension65. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.10988     .01274   -8.6252  0.000   -.134846     -.
+> 084909
+            Robust |     -          -     -7.5981  0.000   -.186416     -.
+> 109963
+--------------------------------------------------------------------------
+> ------
+
+Treatment effect estimates. Outcome: poor_mental_health. Running variable:
+>  age. Treatment Status: pension65.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional |  .10435     .09772   1.0679   0.286    -.08717      .
+> 295876
+            Robust |     -          -     1.7885   0.074   -.025809      .
+> 564175
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. do "C:\Users\bjwil\AppData\Local\Temp\STD300_000000.tmp"
+
+. rdrobust poor_mental_health $R, c($c) p(1) h(5) masspoints(off) fuzzy(pe
+> nsion65)
+
+Fuzzy RD estimates using local polynomial regression.
+
+   Cutoff c = 64.5 | Left of c  Right of c            Number of obs =     
+> 119989
+-------------------+----------------------            BW type       =     
+> Manual
+     Number of obs |     78190       41799            Kernel        = Tria
+> ngular
+Eff. Number of obs |      4664       14037            VCE method    =     
+>     NN
+    Order est. (p) |         1           1
+    Order bias (q) |         2           2
+       BW est. (h) |     5.000       5.000
+       BW bias (b) |     5.000       5.000
+         rho (h/b) |     1.000       1.000
+
+First-stage estimates. Outcome: pension65. Running variable: age.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional | -.10988     .01274   -8.6252  0.000   -.134846     -.
+> 084909
+            Robust |     -          -     -7.5981  0.000   -.186416     -.
+> 109963
+--------------------------------------------------------------------------
+> ------
+
+Treatment effect estimates. Outcome: poor_mental_health. Running variable:
+>  age. Treatment Status: pension65.
+--------------------------------------------------------------------------
+> ------
+            Method |   Coef.    Std. Err.    z     P>|z|    [95% Conf. Int
+> erval]
+-------------------+------------------------------------------------------
+> ------
+      Conventional |  .10435     .09772   1.0679   0.286    -.08717      .
+> 295876
+            Robust |     -          -     1.7885   0.074   -.025809      .
+> 564175
+--------------------------------------------------------------------------
+> ------
+
+. 
+end of do-file
+
+. exit, clear
