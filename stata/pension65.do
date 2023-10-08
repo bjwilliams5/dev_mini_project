@@ -1,6 +1,6 @@
 clear
 
-global root "C:/Users/bjwil/OneDrive/Desktop/Mini-Project"
+global root "C:/Users/bjwil/OneDrive/Desktop/Mini-Project/dev_mini_project"
 
 * ================================================================================= *
 *   Author: Brandon Williams
